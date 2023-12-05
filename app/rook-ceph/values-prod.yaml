@@ -1,0 +1,41 @@
+image:
+  repository: ccr.ccs.tencentyun.com/huanghuanhui/rook-ceph
+  tag: ceph-v1.12.2
+  pullPolicy: IfNotPresent
+
+resources:
+  limits:
+    cpu: "4"
+    memory: "8Gi"
+  requests:
+    cpu: "1"
+    memory: "4Gi"
+
+csi:
+  cephcsi:
+    # @default -- `quay.io/cephcsi/cephcsi:v3.9.0`
+    image: ccr.ccs.tencentyun.com/huanghuanhui/rook-ceph:cephcsi-v3.9.0
+
+  registrar:
+    # @default -- `registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.8.0`
+    image: ccr.ccs.tencentyun.com/huanghuanhui/rook-ceph:csi-node-driver-registrar-v2.8.0
+
+  provisioner:
+    # @default -- `registry.k8s.io/sig-storage/csi-provisioner:v3.5.0`
+    image: ccr.ccs.tencentyun.com/huanghuanhui/rook-ceph:csi-provisioner-v3.5.0
+
+  snapshotter:
+    # @default -- `registry.k8s.io/sig-storage/csi-snapshotter:v6.2.2`
+    image: ccr.ccs.tencentyun.com/huanghuanhui/rook-ceph:csi-snapshotter-v6.2.2
+
+  attacher:
+    # @default -- `registry.k8s.io/sig-storage/csi-attacher:v4.3.0`
+    image: ccr.ccs.tencentyun.com/huanghuanhui/rook-ceph:csi-attacher-v4.3.0
+
+  resizer:
+    # @default -- `registry.k8s.io/sig-storage/csi-resizer:v1.8.0`
+    image: ccr.ccs.tencentyun.com/huanghuanhui/rook-ceph:csi-resizer-v1.8.0
+
+  # -- Image pull policy
+  imagePullPolicy: IfNotPresent
+

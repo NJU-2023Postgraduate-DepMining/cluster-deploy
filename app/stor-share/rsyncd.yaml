@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rsync-server
+  labels:
+    app: rsync-server
+spec:
+  type: NodePort
+  ports:
+  - port: 873
+    name: rsyncd
+    targetPort: 873
+    nodePort: 30015
+  - port: 22
+    name: sshd
+    targetPort: 22
+    nodePort: 30016
+  selector:
+    app: rsync-server
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rsync-server
+  labels:
+    app: rsync-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rsync-server
+  template:
+    metadata:
+      labels:
+        app: rsync-server
+    spec:
+      containers:
+      - name: rsync-server
+        image: axiom/rsync-server:latest
+        resources:
+          limits:
+            cpu: 500m
+            memory: 2Gi
+        env:
+        - name: USERNAME
+          value: user
+        - name: PASSWORD
+          value: pass
+        ports:
+        - containerPort: 873
+          name: rsyncd
+        - containerPort: 22
+          name: sshd
+        volumeMounts:
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: stor-share

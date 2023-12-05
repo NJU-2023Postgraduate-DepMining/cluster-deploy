@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloud-computing-frontend
+  labels:
+    app: cloud-computing-frontend
+spec:
+  type: NodePort
+  ports:
+  - port: 3000
+    targetPort: 3000
+    nodePort: 30018
+  selector:
+    app: cloud-computing-frontend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloud-computing-frontend
+  labels:
+    app: cloud-computing-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloud-computing-frontend
+  template:
+    metadata:
+      labels:
+        app: cloud-computing-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: 
+        resources:
+          limits:
+            cpu: 1
+            memory: 1Gi
+        env:
+        ports:
+        - containerPort: 3000
+          name: frontend

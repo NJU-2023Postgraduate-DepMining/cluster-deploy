@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloud-computing-backend
+  labels:
+    app: cloud-computing-backend
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30017
+  selector:
+    app: cloud-computing-backend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloud-computing-backend
+  labels:
+    app: cloud-computing-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloud-computing-backend
+  template:
+    metadata:
+      labels:
+        app: cloud-computing-backend
+    spec:
+      containers:
+      - name: backend
+        image: registry.cn-hangzhou.aliyuncs.com/everlearner/cloud-computing-backend:0.0.3
+        resources:
+          limits:
+            cpu: 1
+            memory: 4Gi
+        env:
+        - name: CLICKHOUSE_HOST
+          value: clickhouse.clickhouse
+        - name: CLICKHOUSE_PORT
+          value: "8123"
+        - name: MONGO_DB_HOST
+          value: mongo-db.default
+        - name: MONGO_DB_PORT
+          value: "27017"
+        ports:
+        - containerPort: 8080
+          name: backend

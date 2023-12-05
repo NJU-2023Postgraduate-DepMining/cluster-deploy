@@ -1,0 +1,139 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongo-data
+  labels:
+    app: mongo
+spec:
+  storageClassName: ceph-block
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 80Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-db
+  labels:
+    app: mongo
+    component: database
+spec:
+  type: NodePort
+  ports:
+  - port: 27017
+    targetPort: 27017
+    nodePort: 30004
+  selector:
+    app: mongo
+    component: database
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-express
+  labels:
+    app: mongo
+    component: express
+spec:
+  type: NodePort
+  ports:
+  - port: 8081
+    targetPort: 8081
+    nodePort: 30008
+  selector:
+    app: mongo
+    component: express
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-db
+  labels:
+    app: mongo
+    component: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+      component: database
+  template:
+    metadata:
+      labels:
+        app: mongo
+        component: database
+    spec:
+      containers:
+      - name: mongo-db
+        image: mongo:7.0.4-rc0
+        resources:
+          limits:
+            cpu: 1
+            memory: 4Gi
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          value: mongoadmin
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          value: mongoadmin
+        ports:
+        - containerPort: 27017
+          name: mongo-db
+        volumeMounts:
+        - name: db-data
+          mountPath: /data/db
+        - name: data-pool
+          mountPath: /pool
+      volumes:
+      - name: db-data
+        persistentVolumeClaim:
+          claimName: mongo-data
+      - name: data-pool
+        persistentVolumeClaim:
+          claimName: stor-share
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-express
+  labels:
+    app: mongo
+    component: express
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+      component: express
+  template:
+    metadata:
+      labels:
+        app: mongo
+        component: express
+    spec:
+      containers:
+      - name: mongo-express
+        image: mongo-express:1.0.0-20
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        env:
+        - name: MONGO_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: ME_CONFIG_BASICAUTH_USERNAME
+          value: mongoexpress
+        - name: ME_CONFIG_BASICAUTH_PASSWORD
+          value: mongoexpress
+        - name: ME_CONFIG_MONGODB_ADMINUSERNAME
+          value: mongoadmin
+        - name: ME_CONFIG_MONGODB_ADMINPASSWORD
+          value: mongoadmin
+        - name: ME_CONFIG_MONGODB_URL
+          value: mongodb://mongoadmin:mongoadmin@mongo-db.default:27017/
+        ports:
+        - containerPort: 8081
+          name: mongo-express

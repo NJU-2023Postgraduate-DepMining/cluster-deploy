@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kafka-producer
+spec:
+  template:
+    spec:
+      containers:
+      - name: kafka-producer
+        image: registry.cn-hangzhou.aliyuncs.com/everlearner/cloud-computing-kp:2.0.0
+        env:
+        - name: Datasets
+          value: /pool/github_package_json__with_repo_info_470698.json
+        - name: Addr
+          value: kafka.kafka:9094
+        - name: Topic
+          value: topic_github
+        - name: CInterval
+          value: "86400"
+        - name: PInterval
+          value: "1"
+        - name: NotSleep
+          value: "true"
+        volumeMounts:
+        - name: data
+          mountPath: /pool
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: stor-share
+      restartPolicy: Never
+  backoffLimit: 4
